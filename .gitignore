@@ -1,0 +1,13 @@
+# Build output
+/out/
+/build/
+docs/
+
+tests/
+tools/tests/
+AGENT.MD
+CODESTLYE.MD
+create zip.bat
+reuwp.dll
+reuwp.zip
+reuwp_patch.exe

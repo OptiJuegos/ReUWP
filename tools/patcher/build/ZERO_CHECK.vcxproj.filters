@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Admin\Music\Codigos\d3dcraft\ReUWP\tools\patcher\build\CMakeFiles\829680a69951fa0aff3a298c06b6c145\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{866F6F35-0C91-3026-BD60-765E94726A7F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

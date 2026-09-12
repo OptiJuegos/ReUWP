@@ -1,0 +1,3 @@
+C:/Users/Admin/Music/Codigos/d3dcraft/ReUWP/tools/patcher/build/CMakeFiles/reuwp_patch.dir
+C:/Users/Admin/Music/Codigos/d3dcraft/ReUWP/tools/patcher/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Admin/Music/Codigos/d3dcraft/ReUWP/tools/patcher/build/CMakeFiles/ZERO_CHECK.dir

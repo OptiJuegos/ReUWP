@@ -1,0 +1,147 @@
+; Reference shim export table
+;
+; El grueso son *forwarders* a KERNEL32. Ese es el truco central del shim: el
+; juego UWP importa de las api-set (api-ms-win-core-*.dll), que no existen en
+; Windows 7. Se coloca este DLL en su lugar y reenvia casi todo a kernel32,
+; implementando a mano solo lo que Win7 no trae.
+;
+; Verificado contra el binario leyendo las cadenas forwarder en .rdata
+; (0x629914B1..0x629919EB): las 55 son "KERNEL32.<mismo nombre>".
+;
+; Los ordinales son explicitos y replican los del original (1..58, asignados
+; alfabeticamente por link.exe). Se fijan a mano porque aqui los exports estan
+; agrupados por funcion en vez de por nombre, que se lee mucho mejor pero
+; alteraria la numeracion. Mantenerlos permite diffear contra el binario.
+;
+; NOTA AL RENOMBRAR EL MODULO: el nombre de LIBRARY debe cuadrar con OUTPUT_NAME
+; en CMakeLists.txt y con SHIM_MODULE_NAME en include/shim/branding.h. Son los
+; tres unicos sitios donde aparece.
+
+LIBRARY reuwp
+
+EXPORTS
+
+; --- Implementaciones propias -----------------------------------------------
+
+; Windows 7 no tiene CreateFile2 (es Win8+). Se traduce a CreateFileW
+; desempaquetando la estructura CREATEFILE2_EXTENDED_PARAMETERS.
+    CreateFile2                             @4
+
+; Ganchos de delay-load. Los tres devuelven 0: existen para neutralizar el
+; manejo de fallos de delay-load del CRT, no para resolver nada.
+    DelayLoadFailureHook                    @8
+    ResolveDelayLoadedAPI                   @45
+    ResolveDelayLoadsFromDll                @46
+
+; Reenvio perezoso a d3d11.dll. El shim exporta este simbolo porque se hace
+; pasar por la DLL de la que el juego lo importa; la inyeccion del swapchain
+; sobre HWND ocurre despues, no aqui.
+    D3D11CreateDevice                       @7
+
+; Punto de entrada del shim, invocado por el lanzador tras cargar el DLL. No
+; retorna hasta que el juego se cierra: el bucle de mensajes esta dentro.
+;
+; Se exporta con y sin decoracion porque el original hace ambas cosas: segun con
+; que declaracion se compilara el lanzador, busca uno u otro nombre.
+;
+; El segundo nombre lleva una arroba, que en un .def se confunde con la sintaxis
+; de ordinal: el enlazador se come el "@0". Se declara con /EXPORT desde
+; bootstrap.cpp, que si admite el nombre literal.
+    Win32Bootstrap                          @56
+
+; --- Win7 compatibility exports for Win8+/UWP imports ------------------------
+
+    CoCreateInstanceFromApp                 @59
+    EventSetInformation                     @60
+    ProcessPendingGameUI                    @61
+    ShowProfileCardUI                       @62
+    RoInitialize                            @63
+    RoFailFastWithErrorContext              @64
+    RoReportUnhandledError                  @65
+    SetRestrictedErrorInfo                  @66
+    GetRestrictedErrorInfo                  @76
+    RoCaptureErrorContext                  @77
+    RoOriginateError                       @78
+    RoOriginateLanguageException           @79
+    RoTransformError                       @80
+    RoUninitialize                         @81
+    RoGetActivationFactory                 @82
+    RoActivateInstance                     @83
+    RoGetApartmentIdentifier                @84
+    RoRegisterForApartmentShutdown          @85
+    RoUnregisterForApartmentShutdown        @86
+
+; --- WinRT string compatibility (self-contained on Win7) --------------------
+
+    WindowsConcatString                     @67
+    WindowsDuplicateString                  @68
+    WindowsCreateString                     @69
+    WindowsCreateStringReference            @70
+    WindowsDeleteString                     @71
+    WindowsCompareStringOrdinal             @72
+    WindowsIsStringEmpty                    @73
+    WindowsGetStringRawBuffer               @74
+    WindowsGetStringLen                     @75
+    WindowsPreallocateStringBuffer           @87
+    WindowsPromoteStringBuffer               @88
+    WindowsDeleteStringBuffer                @89
+    WindowsStringHasEmbeddedNull             @90
+    WindowsSubstring                         @91
+    WindowsSubstringWithSpecifiedLength      @92
+    WindowsReplaceString                     @93
+    WindowsTrimStringStart                   @94
+    WindowsTrimStringEnd                     @95
+
+; --- Forwarders a KERNEL32 --------------------------------------------------
+
+    AcquireSRWLockExclusive      = KERNEL32.AcquireSRWLockExclusive      @1
+    CreateDirectoryW             = KERNEL32.CreateDirectoryW             @2
+    CreateEventExW               = KERNEL32.CreateEventExW               @3
+    CreateSemaphoreExW           = KERNEL32.CreateSemaphoreExW           @5
+    CreateThread                 = KERNEL32.CreateThread                 @6
+    DeleteCriticalSection        = KERNEL32.DeleteCriticalSection        @9
+    DeleteFileW                  = KERNEL32.DeleteFileW                  @10
+    EnterCriticalSection         = KERNEL32.EnterCriticalSection         @11
+    FindClose                    = KERNEL32.FindClose                    @12
+    FindFirstFileExW             = KERNEL32.FindFirstFileExW             @13
+    FindNextFileW                = KERNEL32.FindNextFileW                @14
+    FlushFileBuffers             = KERNEL32.FlushFileBuffers             @15
+    FormatMessageW               = KERNEL32.FormatMessageW               @16
+    GetCurrentProcess            = KERNEL32.GetCurrentProcess            @17
+    GetCurrentProcessId          = KERNEL32.GetCurrentProcessId          @18
+    GetCurrentThread             = KERNEL32.GetCurrentThread             @19
+    GetCurrentThreadId           = KERNEL32.GetCurrentThreadId           @20
+    GetDateFormatEx              = KERNEL32.GetDateFormatEx              @21
+    GetFileAttributesExW         = KERNEL32.GetFileAttributesExW         @22
+    GetFileInformationByHandleEx = KERNEL32.GetFileInformationByHandleEx @23
+    GetLastError                 = KERNEL32.GetLastError                 @24
+    GetSystemTime                = KERNEL32.GetSystemTime                @25
+    GetSystemTimeAsFileTime      = KERNEL32.GetSystemTimeAsFileTime      @26
+    GetTickCount64               = KERNEL32.GetTickCount64               @27
+    GetTimeFormatEx              = KERNEL32.GetTimeFormatEx              @28
+    GetUserDefaultLocaleName     = KERNEL32.GetUserDefaultLocaleName     @29
+    InitializeConditionVariable  = KERNEL32.InitializeConditionVariable  @30
+    InitializeCriticalSectionEx  = KERNEL32.InitializeCriticalSectionEx  @31
+    InitializeSListHead          = KERNEL32.InitializeSListHead          @32
+    IsProcessorFeaturePresent    = KERNEL32.IsProcessorFeaturePresent    @33
+    LeaveCriticalSection         = KERNEL32.LeaveCriticalSection         @34
+    LockFileEx                   = KERNEL32.LockFileEx                   @35
+    MoveFileExW                  = KERNEL32.MoveFileExW                  @36
+    OutputDebugStringA           = KERNEL32.OutputDebugStringA           @37
+    OutputDebugStringW           = KERNEL32.OutputDebugStringW           @38
+    RaiseException               = KERNEL32.RaiseException               @39
+    ReadFile                     = KERNEL32.ReadFile                     @40
+    ReleaseSRWLockExclusive      = KERNEL32.ReleaseSRWLockExclusive      @41
+    ReleaseSemaphore             = KERNEL32.ReleaseSemaphore             @42
+    RemoveDirectoryW             = KERNEL32.RemoveDirectoryW             @43
+    ResetEvent                   = KERNEL32.ResetEvent                   @44
+    ResumeThread                 = KERNEL32.ResumeThread                 @47
+    SetEvent                     = KERNEL32.SetEvent                     @48
+    SetFilePointerEx             = KERNEL32.SetFilePointerEx             @49
+    SetThreadPriority            = KERNEL32.SetThreadPriority            @50
+    Sleep                        = KERNEL32.Sleep                        @51
+    SleepConditionVariableCS     = KERNEL32.SleepConditionVariableCS      @52
+    UnlockFileEx                 = KERNEL32.UnlockFileEx                 @53
+    WaitForSingleObjectEx        = KERNEL32.WaitForSingleObjectEx        @54
+    WakeAllConditionVariable     = KERNEL32.WakeAllConditionVariable     @55
+    WriteFile                    = KERNEL32.WriteFile                    @58
