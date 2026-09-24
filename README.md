@@ -17,3 +17,8 @@ to run in a fucking good version of windows!!
 - cmake -S . -B build -G "Visual Studio 17 2022" -A Win32
 - cmake --build build --config Release
 - you need the msvc runtime!!! so get into download the 15gb crap of visual studio!! (or download an standalone msvc)
+
+Special credits for original project (this is a decomp):
+
+deltaxur (D3DCraft Creator)
+t.me/NotUWP
